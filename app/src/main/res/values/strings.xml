@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">CatsApi21</string>
+    <string name="save_image">SAVE IMAGE</string>
+    <integer name="card_flip_duration_full">1000</integer>
+    <integer name="card_flip_duration_half">500</integer>
 </resources>

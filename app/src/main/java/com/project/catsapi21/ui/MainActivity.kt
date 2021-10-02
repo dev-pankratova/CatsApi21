@@ -4,13 +4,17 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import com.project.catsapi21.R
+import com.project.catsapi21.listeners.OnSendClickDataToActivity
 
 class MainActivity : AppCompatActivity() {
 
     private var _contentFragment: ContentListFragment? = null
-    private val contentFragment get() = _contentFragment
+    val contentFragment get() = _contentFragment
 
-    //var currentFragment: Fragment? = null
+    private var _fullPicFragment: FullScreenPic? = null
+    val fullPicFragment get() = _fullPicFragment
+
+    var currentFragment: Fragment? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,27 +30,38 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun openFullScreenPic() {
-        //TODO
+        contentFragment?.sendDataToActivity(object : OnSendClickDataToActivity {
+            override fun sendUrlData(url: String?) {
+                _fullPicFragment = url?.let { FullScreenPic.newInstance(it) }
+                fullPicFragment?.let { attachFragmentWithAnimation(it) }
+            }
+        })
     }
 
-    fun showDetail(url: String) {
-        frag2.setArguments(url)
+    private fun attachFragment(fragment: Fragment) {
+        currentFragment = fragment
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.container, fragment)
+            //.addToBackStack(null)
+            .commit()
 
-        supportFragmentManager
-            .beginTransaction()
+    }
+
+    private fun attachFragmentWithAnimation(fragment: Fragment) {
+        currentFragment = fragment
+        supportFragmentManager.beginTransaction()
             .setCustomAnimations(
                 R.anim.card_flip_left_enter,
                 R.anim.card_flip_left_exit
             )
-            .replace(R.id.contentFragment, frag2)
+            .replace(R.id.container, fragment)
             .addToBackStack(null)
             .commit()
+
     }
 
-    private fun attachFragment(fragment: Fragment) {
-        //currentFragment = fragment
-        supportFragmentManager.beginTransaction().apply {
-            replace(R.id.container, fragment)
-        }
+    override fun onBackPressed() {
+        if (currentFragment == contentFragment) finishAndRemoveTask()
+        else super.onBackPressed()
     }
 }

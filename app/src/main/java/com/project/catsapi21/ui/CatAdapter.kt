@@ -7,13 +7,13 @@ import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.project.catsapi21.R
+import com.project.catsapi21.listeners.OnItemClickListener
 import com.project.catsapi21.model.CatsList
-import com.project.thecatapi.R
-import com.project.thecatapi.model.CatsList
-import com.project.thecatapi.ui.catlist.MainActivity
 
 class CatAdapter(private val list: ArrayList<CatsList>, private val context: Context) :
     RecyclerView.Adapter<CatAdapter.ListViewHolder>() {
+
+    private var listener: OnItemClickListener? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ListViewHolder {
         val itemView: View =
@@ -27,14 +27,19 @@ class CatAdapter(private val list: ArrayList<CatsList>, private val context: Con
     }
 
     override fun onBindViewHolder(holder: ListViewHolder, position: Int) {
-        val url: String = list[holder.adapterPosition].url!!
+        val url = list[position].url
         Glide.with(context)
             .load(url)
             .centerCrop()
             .error(R.drawable.ic_launcher_background)
             .into(holder.img)
 
-        holder.img.setOnClickListener { (context as MainActivity).showDetail(url) }
+        if (listener != null) {
+            holder.itemView.setOnClickListener {
+                listener!!.onCatClick(url)
+            }
+        }
+        //holder.img.setOnClickListener { (context as MainActivity).showDetail(url) }
     }
 
     fun addData(list: ArrayList<CatsList>) {
@@ -46,5 +51,9 @@ class CatAdapter(private val list: ArrayList<CatsList>, private val context: Con
 
     inner class ListViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val img: ImageView = itemView.findViewById(R.id.img)
+    }
+
+    fun setListener(listener: OnItemClickListener?) {
+        this.listener = listener
     }
 }

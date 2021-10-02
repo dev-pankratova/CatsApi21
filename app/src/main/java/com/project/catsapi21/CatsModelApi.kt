@@ -1,7 +1,7 @@
 package com.project.catsapi21
 
-import android.telecom.Call
 import com.project.catsapi21.model.CatsList
+import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Query
 
