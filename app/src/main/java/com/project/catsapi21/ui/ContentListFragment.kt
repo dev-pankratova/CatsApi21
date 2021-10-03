@@ -1,16 +1,15 @@
 package com.project.catsapi21.ui
 
 import android.os.Bundle
+import android.os.Handler
 import android.os.Parcelable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.project.catsapi21.CatViewModel
 import com.project.catsapi21.CatsModelApi
 import com.project.catsapi21.PaginationScrollListener
@@ -25,7 +24,8 @@ import retrofit2.Response
 
 class ContentListFragment : Fragment() {
 
-    private var binding: ContentListFragmentBinding? = null
+    private var _binding: ContentListFragmentBinding? = null
+    private val binding get() = _binding
     private var sendDataInterface: OnSendClickDataToActivity? = null
     private val viewModel: CatViewModel by viewModels()
 
@@ -36,6 +36,7 @@ class ContentListFragment : Fragment() {
     private var list: ArrayList<CatsList>? = arrayListOf()
     private var catsAdapter: CatAdapter? = null
     private lateinit var runnable: Runnable
+    private lateinit var handler: Handler
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -45,10 +46,10 @@ class ContentListFragment : Fragment() {
         val view: View?
         if (savedInstanceState != null) {
             val savedRecyclerLayoutState: Parcelable? = savedInstanceState.getParcelable(BUNDLE_RECYCLER_LAYOUT)
-            binding?.contentView?.layoutManager?.onRestoreInstanceState(savedRecyclerLayoutState)
+            _binding?.contentView?.layoutManager?.onRestoreInstanceState(savedRecyclerLayoutState)
             view = binding?.root
         } else {
-            binding = ContentListFragmentBinding.inflate(inflater, container, false)
+            _binding = ContentListFragmentBinding.inflate(inflater, container, false)
             view = binding?.root
         }
         return view
@@ -76,17 +77,27 @@ class ContentListFragment : Fragment() {
         }
     }
 
+    override fun onDestroyView() {
+        _binding = null
+        super.onDestroyView()
+    }
+
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putParcelable(BUNDLE_RECYCLER_LAYOUT, binding?.contentView?.layoutManager?.onSaveInstanceState())
     }
 
     private fun setSwipeListener() {
+        handler = Handler()
         binding?.refreshLayout?.setOnRefreshListener {
             runnable = Runnable {
                 loadMore()
                 binding?.refreshLayout?.isRefreshing = false
             }
+
+            handler.postDelayed(
+                runnable, 3000.toLong()
+            )
         }
     }
 
@@ -115,7 +126,7 @@ class ContentListFragment : Fragment() {
                 }
 
                 override fun onFailure(call: Call<ArrayList<CatsList>>, t: Throwable) {
-                    Toast.makeText(context, "Включи интернет!!!!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Включи интернет и свайпни!!!!", Toast.LENGTH_SHORT).show()
                     //Toast.makeText(context, "${t.message}", Toast.LENGTH_SHORT).show()
                 }
             })
@@ -182,11 +193,6 @@ class ContentListFragment : Fragment() {
 
     fun sendDataToActivity(inter: OnSendClickDataToActivity) {
         this.sendDataInterface = inter
-    }
-
-    override fun onDestroy() {
-        binding = null
-        super.onDestroy()
     }
 
     companion object {

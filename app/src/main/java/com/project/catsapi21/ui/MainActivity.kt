@@ -42,9 +42,7 @@ class MainActivity : AppCompatActivity() {
         currentFragment = fragment
         supportFragmentManager.beginTransaction()
             .replace(R.id.container, fragment)
-            //.addToBackStack(null)
             .commit()
-
     }
 
     private fun attachFragmentWithAnimation(fragment: Fragment) {

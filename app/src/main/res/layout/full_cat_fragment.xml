@@ -7,13 +7,22 @@
     android:fitsSystemWindows="true"
     android:layout_margin="16dp">
 
+    <ProgressBar
+        android:id="@+id/progress_full_cat"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:visibility="visible"
+        android:layout_centerInParent="true"/>
+
+
     <ImageView
         android:id="@+id/cat_image_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_centerInParent="true"
         android:scaleType="center"
-        android:background="@drawable/ic_launcher_background"
+        android:visibility="invisible"
+        tools:background="@drawable/ic_launcher_background"
         android:contentDescription="@null" />
 
     <Button
@@ -22,7 +31,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentStart="true"
-        android:text="To Back" />
+        android:text="@string/back_image" />
 
     <Button
         android:id="@+id/btn_save"
@@ -30,5 +39,5 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
-        android:text="Save Pic" />
+        android:text="@string/save_image" />
 </RelativeLayout>

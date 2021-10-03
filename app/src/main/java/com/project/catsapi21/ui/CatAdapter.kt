@@ -1,4 +1,5 @@
 package com.project.catsapi21.ui
+
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
@@ -9,6 +10,15 @@ import com.bumptech.glide.Glide
 import com.project.catsapi21.R
 import com.project.catsapi21.listeners.OnItemClickListener
 import com.project.catsapi21.model.CatsList
+import android.graphics.drawable.Drawable
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.Target
+import kotlinx.android.synthetic.main.cat_item.view.*
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.bumptech.glide.load.resource.bitmap.CenterCrop
+import com.bumptech.glide.request.RequestOptions
 
 class CatAdapter(private val list: ArrayList<CatsList>, private val context: Context) :
     RecyclerView.Adapter<CatAdapter.ListViewHolder>() {
@@ -28,9 +38,36 @@ class CatAdapter(private val list: ArrayList<CatsList>, private val context: Con
 
     override fun onBindViewHolder(holder: ListViewHolder, position: Int) {
         val url = list[position].url
+        var requestOptions = RequestOptions()
+        requestOptions = requestOptions.transforms(CenterCrop(), RoundedCorners(25))
         Glide.with(context)
             .load(url)
-            .centerCrop()
+            .listener(object : RequestListener<Drawable?> {
+                override fun onLoadFailed(
+                    e: GlideException?,
+                    model: Any?,
+                    target: Target<Drawable?>?,
+                    isFirstResource: Boolean
+                ): Boolean {
+                    holder.itemView.progress.visibility = View.GONE
+                    holder.itemView.img.visibility = View.VISIBLE
+                    return false
+                }
+
+                override fun onResourceReady(
+                    resource: Drawable?,
+                    model: Any?,
+                    target: Target<Drawable?>?,
+                    dataSource: DataSource?,
+                    isFirstResource: Boolean
+                ): Boolean {
+                    holder.itemView.progress.visibility = View.GONE
+                    holder.itemView.img.visibility = View.VISIBLE
+                    return false
+                }
+
+            })
+            .apply(requestOptions)
             .error(R.drawable.ic_launcher_background)
             .into(holder.img)
 
@@ -39,7 +76,6 @@ class CatAdapter(private val list: ArrayList<CatsList>, private val context: Con
                 listener!!.onCatClick(url)
             }
         }
-        //holder.img.setOnClickListener { (context as MainActivity).showDetail(url) }
     }
 
     fun addData(list: ArrayList<CatsList>) {

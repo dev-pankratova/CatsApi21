@@ -11,7 +11,7 @@ object ServiceBuilder {
         .setLenient()
         .create()
 
-    val retrofit: Retrofit = Retrofit.Builder()
+    private val retrofit: Retrofit = Retrofit.Builder()
         .baseUrl(BASE_URL)
         .addConverterFactory(GsonConverterFactory.create(gson))
         .build()
