@@ -1,5 +1,4 @@
 package com.project.catsapi21.ui
-
 import android.os.Bundle
 import android.os.Handler
 import android.os.Parcelable
@@ -26,10 +25,9 @@ class ContentListFragment : Fragment() {
 
     private var _binding: ContentListFragmentBinding? = null
     private val binding get() = _binding
-    private var sendDataInterface: OnSendClickDataToActivity? = null
     private val viewModel: CatViewModel by viewModels()
 
-    private var PAGES = 1
+    private var pages = 1
     private val isLastPage = false
     private var isLoading = false
     private var mLayoutManager: GridLayoutManager? = null
@@ -58,6 +56,7 @@ class ContentListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding?.contentView?.layoutManager = createLayoutManager()
+        initOptionsMenu()
         setSwipeListener()
         loadMore()
         pagination()
@@ -66,6 +65,17 @@ class ContentListFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         (activity as MainActivity).currentFragment = (activity as MainActivity).contentFragment
+        (activity as MainActivity).contentFragment?.let { viewModel.saveCurrentFragment(it) }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        binding?.contentView?.layoutManager?.onSaveInstanceState()?.let {
+            viewModel.saveCatParcelable(
+                it
+            )
+        }
+        outState.putParcelable(BUNDLE_RECYCLER_LAYOUT, binding?.contentView?.layoutManager?.onSaveInstanceState())
     }
 
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
@@ -74,6 +84,11 @@ class ContentListFragment : Fragment() {
             val savedRecyclerLayoutManager: Parcelable? = savedInstanceState.getParcelable(
                 BUNDLE_RECYCLER_LAYOUT)
             binding?.contentView?.layoutManager?.onRestoreInstanceState(savedRecyclerLayoutManager)
+        } else {
+            val getParcelable = viewModel.getCatParcelable
+            if (getParcelable != null) {
+                binding?.contentView?.layoutManager?.onRestoreInstanceState(getParcelable)
+            }
         }
     }
 
@@ -82,9 +97,8 @@ class ContentListFragment : Fragment() {
         super.onDestroyView()
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putParcelable(BUNDLE_RECYCLER_LAYOUT, binding?.contentView?.layoutManager?.onSaveInstanceState())
+    private fun initOptionsMenu() {
+        (activity as MainActivity).supportActionBar?.setDisplayHomeAsUpEnabled(false)
     }
 
     private fun setSwipeListener() {
@@ -96,13 +110,13 @@ class ContentListFragment : Fragment() {
             }
 
             handler.postDelayed(
-                runnable, 3000.toLong()
+                runnable, SPINNER_DURATION.toLong()
             )
         }
     }
 
     private fun createLayoutManager(): GridLayoutManager {
-        val grid = GridLayoutManager(context, 3)
+        val grid = GridLayoutManager(context, COLUMN_COUNT)
         mLayoutManager = grid
         return grid
     }
@@ -111,7 +125,7 @@ class ContentListFragment : Fragment() {
         val savedList = viewModel.getSavedItemList
         if (savedList.isNullOrEmpty()) {
             val request = ServiceBuilder.buildService(CatsModelApi::class.java)
-            val call = request.loadCats("71e1b8baf781402aa67e4791daf5d432", PAGES, 25)
+            val call = request.loadCats("71e1b8baf781402aa67e4791daf5d432", pages, PAGES_COUNT)
             call.enqueue(object : Callback<ArrayList<CatsList>> {
                 override fun onResponse(
                     call: Call<ArrayList<CatsList>>,
@@ -121,13 +135,13 @@ class ContentListFragment : Fragment() {
                         list = response.body()
                         viewModel.savedCatList(list)
                         list?.let { getList(it)
-                            setItemClickListener()}
+                            setItemClickListener() }
                     }
                 }
 
                 override fun onFailure(call: Call<ArrayList<CatsList>>, t: Throwable) {
                     Toast.makeText(context, "Включи интернет и свайпни!!!!", Toast.LENGTH_SHORT).show()
-                    //Toast.makeText(context, "${t.message}", Toast.LENGTH_SHORT).show()
+                    // Toast.makeText(context, "${t.message}", Toast.LENGTH_SHORT).show()
                 }
             })
         } else {
@@ -138,7 +152,7 @@ class ContentListFragment : Fragment() {
 
     private fun loadMore2() {
         val request = ServiceBuilder.buildService(CatsModelApi::class.java)
-        val call = request.loadCats("71e1b8baf781402aa67e4791daf5d432", PAGES++, 25)
+        val call = request.loadCats("71e1b8baf781402aa67e4791daf5d432", pages++, PAGES_COUNT)
         call.enqueue(object : Callback<ArrayList<CatsList>> {
             override fun onResponse(
                 call: Call<ArrayList<CatsList>>,
@@ -164,7 +178,7 @@ class ContentListFragment : Fragment() {
     }
 
     private fun pagination() {
-        binding?.contentView?.addOnScrollListener(object : PaginationScrollListener(mLayoutManager!!){
+        binding?.contentView?.addOnScrollListener(object : PaginationScrollListener(mLayoutManager!!) {
             override fun isLastPage(): Boolean {
                 return isLastPage
             }
@@ -191,14 +205,20 @@ class ContentListFragment : Fragment() {
         })
     }
 
+    val getInterface get() = sendDataInterface
+
     fun sendDataToActivity(inter: OnSendClickDataToActivity) {
-        this.sendDataInterface = inter
+        sendDataInterface = inter
     }
 
     companion object {
         fun newInstance(): ContentListFragment {
             return ContentListFragment()
         }
+        private var sendDataInterface: OnSendClickDataToActivity? = null
         private const val BUNDLE_RECYCLER_LAYOUT = "recycler.layout"
+        private const val SPINNER_DURATION = 3000
+        private const val COLUMN_COUNT = 3
+        private const val PAGES_COUNT = 25
     }
 }

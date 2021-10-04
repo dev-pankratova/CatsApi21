@@ -1,5 +1,4 @@
 package com.project.catsapi21
-
 import com.project.catsapi21.model.CatsList
 import retrofit2.Call
 import retrofit2.http.GET

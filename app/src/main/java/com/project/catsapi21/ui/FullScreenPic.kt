@@ -1,5 +1,4 @@
 package com.project.catsapi21.ui
-
 import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -13,20 +12,25 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
+import com.project.catsapi21.CatViewModel
 import com.project.catsapi21.R
 import com.project.catsapi21.databinding.FullCatFragmentBinding
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.*
 
 class FullScreenPic : Fragment() {
+    private val viewModel: CatViewModel by viewModels()
+
     private var _binding: FullCatFragmentBinding? = null
     private val binding get() = _binding
     private var url: String? = null
@@ -67,6 +71,21 @@ class FullScreenPic : Fragment() {
             closeView()
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(BUNDLE_SAVE_URL, url)
+    }
+
+    override fun onViewStateRestored(savedInstanceState: Bundle?) {
+        super.onViewStateRestored(savedInstanceState)
+        if (savedInstanceState != null) {
+            url = savedInstanceState.getString(
+                BUNDLE_SAVE_URL
+            )
+            setPicFromUrl()
+        }
     }
 
     private fun initOptionsMenu() {
@@ -141,6 +160,7 @@ class FullScreenPic : Fragment() {
 
     private fun setCurrentFragment() {
         (activity as MainActivity).currentFragment = (activity as MainActivity).fullPicFragment
+        (activity as MainActivity).fullPicFragment?.let { viewModel.saveCurrentFragment(it) }
     }
 
     private fun showCat(url: String) {
@@ -194,5 +214,6 @@ class FullScreenPic : Fragment() {
 
         private const val CAT_URL = "CAT_URL"
         private var REQUEST_STORAGE_PERMISSION = 122
+        private var BUNDLE_SAVE_URL = "bundle_save_url"
     }
 }
